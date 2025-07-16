@@ -1,4 +1,24 @@
+const puppeteer = require('puppeteer');
 const { google } = require('googleapis');
+
+async function scrapeEconomicIndicators() {
+  const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
+  const page = await browser.newPage();
+  await page.goto('https://fx.minkabu.jp/indicators?country=all', { waitUntil: 'networkidle2' });
+
+  const data = await page.evaluate(() => {
+    const rows = Array.from(document.querySelectorAll('.economicCalendarTable tbody tr'));
+    return rows.map(row => {
+      const date = row.querySelector('.date')?.innerText.trim() || '';
+      const name = row.querySelector('.event')?.innerText.trim() || '';
+      const actual = row.querySelector('.actual')?.innerText.trim() || '';
+      return [date, name, actual];
+    });
+  });
+
+  await browser.close();
+  return data;
+}
 
 async function authorize() {
   const auth = new google.auth.GoogleAuth({
@@ -8,29 +28,23 @@ async function authorize() {
     },
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
-
   return await auth.getClient();
 }
 
-async function updateSheet() {
+async function updateSheet(values) {
   const authClient = await authorize();
   const sheets = google.sheets({ version: 'v4', auth: authClient });
-
   const spreadsheetId = process.env.SPREADSHEET_ID;
 
-  // 👇 ここに Puppeteer でスクレイピングした結果を代入するよう拡張してください
-  const values = [
-    ['日時', '指標名', '結果'],
-    ['2025/07/16 10:00', 'GDP速報', '3.2%'],
-    ['2025/07/16 14:00', '雇用統計', '250k'],
-  ];
+  // 1行目はヘッダー
+  const header = [['日時', '指標名', '結果']];
 
   await sheets.spreadsheets.values.update({
     spreadsheetId,
     range: '経済指標!A1',
     valueInputOption: 'RAW',
     requestBody: {
-      values: values,
+      values: header.concat(values),
     },
   });
 
@@ -39,8 +53,8 @@ async function updateSheet() {
 
 (async () => {
   console.log('📥 スクレイピング開始...');
-  // TODO: Puppeteerなどでスクレイピングする処理をここに追加
+  const scrapedData = await scrapeEconomicIndicators();
 
   console.log('📤 スプレッドシート更新中...');
-  await updateSheet();
+  await updateSheet(scrapedData);
 })();
