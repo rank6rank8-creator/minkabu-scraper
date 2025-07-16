@@ -1,0 +1,29 @@
+name: Minkabu Scraper
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # 毎時0分に実行（1時間に1回）
+  workflow_dispatch:      # 手動実行もできるように
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'  # 必要なNodeバージョンに合わせて変更
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run scraper
+      env:
+        GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
+        GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
+        SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
+      run: node index.js
