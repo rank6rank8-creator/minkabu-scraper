@@ -8,7 +8,10 @@ const SHEET_NAME = 'Sheet1'; // 必要に応じて変更
 (async () => {
   console.log('🚀 スクレイピング処理を開始します');
 
-  const browser = await puppeteer.launch({ headless: 'new' });
+const browser = await puppeteer.launch({
+  headless: 'new',
+  args: ['--no-sandbox', '--disable-setuid-sandbox'],
+});
   const page = await browser.newPage();
   console.log('🌐 Puppeteer起動中...');
   console.log('🧭 新しいページを開いています...');
