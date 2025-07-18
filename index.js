@@ -1,79 +1,65 @@
+require('dotenv').config();
 const puppeteer = require('puppeteer');
 const { google } = require('googleapis');
+const fs = require('fs');
 
-// スプレッドシート設定
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
-const SHEET_NAME = '経済指標'; // 必要に応じて変更
+const SHEET_NAME = '経済指標'; // スプレッドシートのシート名
 
 (async () => {
   console.log('🚀 スクレイピング処理を開始します');
 
-const browser = await puppeteer.launch({
-  headless: 'new',
-  args: ['--no-sandbox', '--disable-setuid-sandbox'],
-});
+  const browser = await puppeteer.launch({ headless: 'new' });
   const page = await browser.newPage();
+
   console.log('🌐 Puppeteer起動中...');
-  console.log('🧭 新しいページを開いています...');
-  await page.goto('https://fx.minkabu.jp/indicators?country=all', { waitUntil: 'networkidle0' });
-  console.log('📡 ページにアクセス中: https://fx.minkabu.jp/indicators?country=all');
+  await page.goto('https://fx.minkabu.jp/indicators?country=all', {
+    waitUntil: 'domcontentloaded',
+  });
 
   console.log('🔍 経済指標データを取得中...');
 
   const data = await page.evaluate(() => {
-    const rows = Array.from(document.querySelectorAll('div.indicator-table > table > tbody > tr'));
-    return rows.map(row => {
-      const cols = row.querySelectorAll('td');
-      return {
-        date: cols[0]?.innerText.trim(),
-        time: cols[1]?.innerText.trim(),
-        country: cols[2]?.innerText.trim(),
-        indicator: cols[3]?.innerText.trim(),
-        importance: cols[4]?.innerText.trim(),
-        result: cols[5]?.innerText.trim(),
-        forecast: cols[6]?.innerText.trim(),
-        previous: cols[7]?.innerText.trim()
-      };
-    });
-  });
+    const rows = document.querySelectorAll('.eilist__list > li');
+    const results = [];
 
-  console.log(`✅ ${data.length} 件の指標を取得しました`);
+    rows.forEach(row => {
+      const time = row.querySelector('.eilist__time')?.textContent.trim() || '';
+      const country = row.querySelector('.eilist__flag')?.getAttribute('title') || '';
+      const title = row.querySelector('.eilist__event')?.textContent.trim() || '';
+      const importance = row.querySelectorAll('.icn-importance').length;
+      const previous = row.querySelectorAll('.eilist__data')[0]?.textContent.trim() || '';
+      const forecast = row.querySelectorAll('.eilist__data')[1]?.textContent.trim() || '';
+      const result = row.querySelectorAll('.eilist__data')[2]?.textContent.trim() || '';
+
+      if (time && country && title) {
+        results.push([time, country, title, importance, previous, forecast, result]);
+      }
+    });
+
+    return results;
+  });
 
   await browser.close();
 
+  console.log(`✅ ${data.length} 件の指標を取得しました`);
+
   console.log('📤 スプレッドシートへの書き込みを開始します');
 
-  // Google Sheets 認証と書き込み
   const auth = new google.auth.GoogleAuth({
-    credentials: {
-      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    },
+    keyFile: 'credentials.json',
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
 
-  const sheets = google.sheets({ version: 'v4', auth });
-
-  console.log('📄 Googleスプレッドシートに接続中...');
-  console.log('🔐 Google認証情報を読み込み中...');
-
-  const authClient = await auth.getClient();
-  console.log('🔑 Google認証に成功しました');
-
-  const values = data.map(row => [
-    row.date, row.time, row.country, row.indicator,
-    row.importance, row.result, row.forecast, row.previous
-  ]);
-
-  console.log('📌 データを書き込む準備中...');
-  console.log(`📝 ${values.length} 件のデータを書き込みます`);
+  const client = await auth.getClient();
+  const sheets = google.sheets({ version: 'v4', auth: client });
 
   await sheets.spreadsheets.values.update({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${SHEET_NAME}!A2:H`,
+    range: `${SHEET_NAME}!A2`,
     valueInputOption: 'RAW',
-    requestBody: {
-      values: values,
+    resource: {
+      values: data,
     },
   });
 
