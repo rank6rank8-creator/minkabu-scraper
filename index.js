@@ -3,7 +3,7 @@ const { google } = require('googleapis');
 
 // スプレッドシート設定
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
-const SHEET_NAME = 'news'; // 必要に応じて変更
+const SHEET_NAME = '経済指標'; // 必要に応じて変更
 
 (async () => {
   console.log('🚀 スクレイピング処理を開始します');
