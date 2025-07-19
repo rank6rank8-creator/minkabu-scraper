@@ -1,5 +1,27 @@
+import fs from "fs";
 import { scrapeIndicators } from "./scrape.js";
 import { writeToSpreadsheet } from "./spreadsheet.js";
+
+// credentials.json を Secrets から動的に生成
+const credPath = "./credentials.json";
+if (!fs.existsSync(credPath)) {
+  const client_email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const private_key = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+
+  if (!client_email || !private_key) {
+    console.error("❌ GOOGLE_SERVICE_ACCOUNT_EMAIL または GOOGLE_PRIVATE_KEY が設定されていません");
+    process.exit(1);
+  }
+
+  const credentials = {
+    type: "service_account",
+    client_email,
+    private_key,
+  };
+
+  fs.writeFileSync(credPath, JSON.stringify(credentials));
+  console.log("📝 credentials.json を Secrets から生成しました");
+}
 
 console.log("🚀 スクレイピング処理を開始します");
 
