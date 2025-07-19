@@ -1,3 +1,12 @@
-node_modules/
+# 機密ファイル
+credentials.json
 allfiles.txt
+token.json
+
+# ライブラリ
+node_modules/
+credentials.json
+.env
+
+# ログや一時ファイル
 *.log
