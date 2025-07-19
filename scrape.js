@@ -2,7 +2,10 @@ import puppeteer from "puppeteer";
 
 export async function scrapeIndicators() {
   console.log("🌐 Puppeteer起動中...");
-  const browser = await puppeteer.launch({ headless: "new" });
+const browser = await puppeteer.launch({
+  headless: true,
+  args: ['--no-sandbox', '--disable-setuid-sandbox'],
+});
   const page = await browser.newPage();
 
   console.log("🧭 新しいページを開いています...");
