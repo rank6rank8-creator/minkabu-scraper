@@ -21,9 +21,13 @@ jobs:
     - name: Install dependencies
       run: npm install
 
-    - name: Create credentials.json
+    - name: Create credentials.json from secret
       run: |
-        echo '${{ secrets.GOOGLE_CREDENTIALS_JSON }}' > credentials.json
+            echo "$GOOGLE_CREDENTIALS_JSON" > credentials.json
+      shell: bash
+      env:
+            GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+
 
     - name: Run scraper
       env:
