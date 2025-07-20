@@ -9,7 +9,7 @@ const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
 
 export async function writeToSpreadsheet(data) {
   const auth = new google.auth.GoogleAuth({
-    keyFile: path.join(process.cwd(), "credentials.json"),,
+    keyFile: path.join(process.cwd(), "credentials.json"),
     scopes: SCOPES,
   });
 
