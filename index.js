@@ -4,12 +4,6 @@ import { writeToSpreadsheet } from "./spreadsheet.js";
 
 // credentials.json を Secrets から動的に生成
 const credPath = "./credentials.json";
-console.log("🔍 起動: index.js");
-console.log("📁 credPath:", credPath);
-console.log("📄 ファイル存在:", fs.existsSync(credPath));
-
-
-if (!fs.existsSync(credPath)) {
   const client_email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
   const private_key = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 
@@ -26,9 +20,7 @@ if (!fs.existsSync(credPath)) {
 
   // ここでファイルを書き出す
   fs.writeFileSync(credPath, JSON.stringify(credentials));
-
   console.log("📝 credentials.json を Secrets から生成しました");
-}
 
 console.log("🚀 スクレイピング処理を開始します");
 
