@@ -13,13 +13,7 @@ if (!fs.existsSync(credPath)) {
     process.exit(1);
   }
 
-  const credentials = {
-    type: "service_account",
-    client_email,
-    private_key,
-  };
 
-  fs.writeFileSync(credPath, JSON.stringify(credentials));
   console.log("📝 credentials.json を Secrets から生成しました");
 }
 
