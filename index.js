@@ -9,7 +9,7 @@ if (!fs.existsSync(credPath)) {
   const private_key = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 
   if (!client_email || !private_key) {
-    console.error("❌ GOOGLE_SERVICE_ACCOUNT_EMAIL または GOOGLE_PRIVATE_KEY が設定されていません");
+    console.log("❌ GOOGLE_SERVICE_ACCOUNT_EMAIL または GOOGLE_PRIVATE_KEY が設定されていません");
     process.exit(1);
   }
 
