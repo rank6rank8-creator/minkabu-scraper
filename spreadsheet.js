@@ -9,6 +9,7 @@ dotenv.config();
 const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
 const CREDENTIALS_PATH = path.join(process.cwd(), "credentials.json");
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
+const OUTPUT_DIR = "./output";
 
 export async function writeToSpreadsheet(data) {
   const auth = new google.auth.GoogleAuth({
